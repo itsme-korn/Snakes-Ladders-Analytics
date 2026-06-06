@@ -25,7 +25,8 @@ import {
   getInitialSheetConfig, 
   saveLocalState, 
   fetchGoogleSheetState,
-  syncActiveRoundToGoogleSheet
+  syncActiveRoundToGoogleSheet,
+  syncTimerToGoogleSheet
 } from './utils/sheets';
 
 // @ts-ignore
@@ -61,6 +62,11 @@ export default function App() {
     if (!timerEnd) return 60;
     return Math.max(0, Math.ceil((timerEnd - Date.now()) / 1000));
   });
+
+  const timerEndRef = React.useRef<number | null>(timerEnd);
+  useEffect(() => {
+    timerEndRef.current = timerEnd;
+  }, [timerEnd]);
 
   const lastSecRef = React.useRef<number>(60);
   const lastFastTickRef = React.useRef<number>(0);
@@ -218,12 +224,14 @@ export default function App() {
     const endTime = Date.now() + 60000; // 1-minute default duration
     setTimerEnd(endTime);
     localStorage.setItem('snakes_n_ladders_timer_end', String(endTime));
+    syncTimerToGoogleSheet(sheetConfig, endTime);
   };
 
   const handleStopTimer = () => {
     setTimerEnd(null);
     localStorage.removeItem('snakes_n_ladders_timer_end');
     setTimeLeft(60);
+    syncTimerToGoogleSheet(sheetConfig, null);
   };
 
   const handleAdjustTimer = (adjustmentSec: number) => {
@@ -238,10 +246,12 @@ export default function App() {
       setTimerEnd(null);
       localStorage.removeItem('snakes_n_ladders_timer_end');
       setTimeLeft(60);
+      syncTimerToGoogleSheet(sheetConfig, null);
     } else {
       setTimerEnd(newEndTime);
       localStorage.setItem('snakes_n_ladders_timer_end', String(newEndTime));
       setTimeLeft(Math.max(0, Math.ceil((newEndTime - Date.now()) / 1000)));
+      syncTimerToGoogleSheet(sheetConfig, newEndTime);
     }
   };
 
@@ -262,18 +272,18 @@ export default function App() {
   }, [currentRound]);
 
   // Attempt to sync pulling passwords & squares from sheet if configured on load
-  const loadSheetData = async (configOverride?: GoogleSheetConfig) => {
+  const loadSheetData = async (configOverride?: GoogleSheetConfig, isSilent: boolean = false) => {
     const activeConfig = configOverride || sheetConfig;
     if (!activeConfig.appsScriptUrl) return;
 
-    setIsPulling(true);
+    if (!isSilent) setIsPulling(true);
     try {
       const data = await fetchGoogleSheetState(activeConfig);
       if (data) {
         // Apply synchronized passwords if present
         if (data.passwords) {
           setPasswordsFromSheet(data.passwords);
-          console.log('Successfully synced custom passwords from sheet:', data.passwords);
+          if (!isSilent) console.log('Successfully synced custom passwords from sheet:', data.passwords);
         }
 
         // Apply synchronized coordinates if present
@@ -290,7 +300,7 @@ export default function App() {
               return player;
             })
           );
-          console.log('Successfully synced player coordinates from sheet:', data.positions);
+          if (!isSilent) console.log('Successfully synced player coordinates from sheet:', data.positions);
         }
 
         // Apply synchronized active round if present
@@ -298,11 +308,33 @@ export default function App() {
           setCurrentRound(data.activeRound);
           localStorage.setItem('snakes_n_ladders_active_round', data.activeRound);
         }
+
+        // Apply synchronized timer if present in database payload
+        if (data.timerEnd !== undefined) {
+          const remoteTime = parseInt(data.timerEnd, 10);
+          const currentLocalTime = timerEndRef.current;
+          if (remoteTime > 0) {
+            if (!currentLocalTime || Math.abs(currentLocalTime - remoteTime) > 1500) {
+              if (remoteTime > Date.now()) {
+                setTimerEnd(remoteTime);
+                localStorage.setItem('snakes_n_ladders_timer_end', String(remoteTime));
+              } else {
+                setTimerEnd(null);
+                localStorage.removeItem('snakes_n_ladders_timer_end');
+                setTimeLeft(60);
+              }
+            }
+          } else if (currentLocalTime !== null) {
+            setTimerEnd(null);
+            localStorage.removeItem('snakes_n_ladders_timer_end');
+            setTimeLeft(60);
+          }
+        }
       }
     } catch (err) {
       console.warn('Failed to pull initial state from Google Sheets web app:', err);
     } finally {
-      setIsPulling(false);
+      if (!isSilent) setIsPulling(false);
     }
   };
 
@@ -310,6 +342,18 @@ export default function App() {
   useEffect(() => {
     loadSheetData();
   }, []);
+
+  // Automated background polling loop to keep players and admin synchronized across separate screens!
+  useEffect(() => {
+    if (!sheetConfig.appsScriptUrl) return;
+
+    // Pull every 6 seconds softly in the background
+    const interval = setInterval(() => {
+      loadSheetData(sheetConfig, true);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [sheetConfig.appsScriptUrl]);
 
   // Actions
   const handleRollComplete = (val: string, stand1: number, stand2: number, before: number, after: number) => {

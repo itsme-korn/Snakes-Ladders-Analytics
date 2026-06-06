@@ -160,7 +160,7 @@ export const syncRollToGoogleSheet = async (
   const queryParams = new URLSearchParams({
     action: 'addRoll',
     baan: roll.baan,
-    value: roll.value,
+    value: String(roll.value),
     stand1: String(roll.stand1),
     stand2: String(roll.stand2),
     squareBefore: String(roll.squareBefore),
@@ -252,6 +252,55 @@ export const syncActiveRoundToGoogleSheet = async (
 };
 
 /**
+ * Sends the active 1-minute countdown timer value to Google Sheets Apps Script.
+ */
+export const syncTimerToGoogleSheet = async (
+  config: GoogleSheetConfig,
+  timerEnd: number | null
+): Promise<boolean> => {
+  if (!config.appsScriptUrl) {
+    console.log('Google Sheets is not linked. Simulated setting timerEnd to:', timerEnd);
+    return false;
+  }
+
+  const timerVal = timerEnd ? String(timerEnd) : '0';
+
+  const payload = {
+    action: 'setTimer',
+    timerEnd: timerVal,
+  };
+
+  try {
+    await fetch(config.appsScriptUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    fetch(`${config.appsScriptUrl}?action=setTimer&timerEnd=${timerVal}`, {
+      method: 'GET',
+      mode: 'no-cors',
+    }).catch(() => {});
+
+    return true;
+  } catch (error) {
+    console.error('Failed to sync timer to Google Sheets:', error);
+    try {
+      await fetch(`${config.appsScriptUrl}?action=setTimer&timerEnd=${timerVal}`, {
+        method: 'GET',
+        mode: 'no-cors',
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+};
+
+/**
  * Triggers a full beauty design and cell-resizing sweep in Google Sheets on-demand.
  * This runs all formatting scripts asynchronously to keep normal dice rolls lightning-fast.
  */
@@ -303,7 +352,7 @@ export const syncFormatSheets = async (
  */
 export const fetchGoogleSheetState = async (
   config: GoogleSheetConfig
-): Promise<{ passwords?: { [key: string]: string }; positions?: { [key: string]: number }; activeRound?: string } | null> => {
+): Promise<{ passwords?: { [key: string]: string }; positions?: { [key: string]: number }; activeRound?: string; timerEnd?: string } | null> => {
   if (!config.appsScriptUrl) return null;
 
   try {
@@ -492,6 +541,14 @@ function doPost(e) {
         PropertiesService.getScriptProperties().setProperty("activeRound", data.round || "Trial");
       } catch (err) {}
       return ContentService.createTextOutput(JSON.stringify({ status: "success", round: data.round }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (data.action === "setTimer") {
+      try {
+        PropertiesService.getScriptProperties().setProperty("timerEnd", data.timerEnd || "0");
+      } catch (err) {}
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", timerEnd: data.timerEnd }))
         .setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -683,6 +740,14 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
+    if (action === "setTimer") {
+      try {
+        PropertiesService.getScriptProperties().setProperty("timerEnd", e.parameter.timerEnd || "0");
+      } catch (err) {}
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", timerEnd: e.parameter.timerEnd }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     if (action === "format") {
       let logSheet = ss.getSheetByName("Roll Logs");
       let stateSheet = ss.getSheetByName("Board States");
@@ -729,7 +794,12 @@ function doGet(e) {
       activeRound = PropertiesService.getScriptProperties().getProperty("activeRound") || "Trial";
     } catch(err) {}
     
-    return ContentService.createTextOutput(JSON.stringify({ passwords, positions, activeRound }))
+    var timerEnd = "0";
+    try {
+      timerEnd = PropertiesService.getScriptProperties().getProperty("timerEnd") || "0";
+    } catch(err) {}
+    
+    return ContentService.createTextOutput(JSON.stringify({ passwords, positions, activeRound, timerEnd }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
