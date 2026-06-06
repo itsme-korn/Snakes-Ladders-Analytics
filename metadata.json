@@ -1,0 +1,6 @@
+{
+  "name": "Snakes & Ladders",
+  "description": "An interactive cell-based Snakes & Ladders game with dice rolling connected directly to Google Sheets for automated result reporting and admin state management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
