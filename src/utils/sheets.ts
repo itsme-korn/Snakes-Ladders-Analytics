@@ -96,6 +96,7 @@ export const getInitialRolls = (): Roll[] => {
 
 export const getInitialSheetConfig = (): GoogleSheetConfig => {
   const saved = localStorage.getItem(SHEET_CONFIG_KEY);
+  const targetUrl = 'https://script.google.com/macros/s/AKfycbyuZckHBr6AqEWt-70Z2l90qEc4uYX9p7xvR93At9Ave4A9nVM8qk_X0LOXwKBfNQb2mg/exec';
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
@@ -103,9 +104,11 @@ export const getInitialSheetConfig = (): GoogleSheetConfig => {
         if (!parsed.spreadsheetId) {
           parsed.spreadsheetId = '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk';
         }
-        if (!parsed.appsScriptUrl) {
-          parsed.appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzFerjPz8A1FwTzx2NsqbEsxb5jbNs_WXVcaEPZUBTwAszcq8mgqGFpnHcl5S8oa3I/exec';
+        // Force update if it was using the older default URL or if appsScriptUrl is empty/missing
+        if (!parsed.appsScriptUrl || parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzFerjPz8A1FwTzx2NsqbEsxb5jbNs_WXVcaEPZUBTwAszcq8mgqGFpnHcl5S8oa3I/exec') {
+          parsed.appsScriptUrl = targetUrl;
           parsed.isLinked = true;
+          localStorage.setItem(SHEET_CONFIG_KEY, JSON.stringify(parsed));
         }
         return parsed;
       }
@@ -115,7 +118,7 @@ export const getInitialSheetConfig = (): GoogleSheetConfig => {
   }
   return {
     spreadsheetId: '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk',
-    appsScriptUrl: 'https://script.google.com/macros/s/AKfycbzFerjPz8A1FwTzx2NsqbEsxb5jbNs_WXVcaEPZUBTwAszcq8mgqGFpnHcl5S8oa3I/exec',
+    appsScriptUrl: targetUrl,
     sheetName: 'Sheet1',
     isLinked: true,
   };
