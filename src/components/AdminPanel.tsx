@@ -27,6 +27,7 @@ interface AdminPanelProps {
   sheetConfig: GoogleSheetConfig;
   currentRound: string;
   timerActive: boolean;
+  timeLeft?: number;
   onStartTimer: () => void;
   onStopTimer: () => void;
   onAdjustTimer: (adjustmentSec: number) => void;
@@ -45,6 +46,7 @@ export default function AdminPanel({
   sheetConfig,
   currentRound,
   timerActive,
+  timeLeft,
   onStartTimer,
   onStopTimer,
   onAdjustTimer,
@@ -183,7 +185,8 @@ export default function AdminPanel({
         {/* Big satisying choice buttons */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 md:gap-4 relative z-10">
           {roundChoices.map((choice) => {
-            const isSelected = currentRound === choice;
+            const normalizedChoice = choice !== 'Trial' && !choice.toLowerCase().startsWith('round') ? `Round ${choice}` : choice;
+            const isSelected = currentRound === choice || currentRound === normalizedChoice;
             return (
               <button
                 key={choice}
@@ -219,9 +222,18 @@ export default function AdminPanel({
             <h4 className="font-display font-black text-sm text-slate-900 flex items-center gap-1.5 justify-center sm:justify-start">
               <Clock className={`w-4 h-4 ${timerActive ? 'text-red-500 animate-pulse' : 'text-indigo-600'}`} />
               <span>Round Countdown Timer</span>
+              {timerActive && timeLeft !== undefined && (
+                <span className="ml-1.5 px-2 py-0.5 rounded-md bg-red-50 text-red-600 text-xs font-mono font-black border border-red-200 animate-pulse">
+                  {(() => {
+                    const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+                    const ss = String(timeLeft % 60).padStart(2, '0');
+                    return `${mm}:${ss}`;
+                  })()}
+                </span>
+              )}
             </h4>
             <p className="text-xs text-slate-500 mt-1 max-w-sm text-center sm:text-left leading-relaxed">
-              Trigger a universal 1-minute countdown timer. This starts ticking down instantly for all active players in their top status headers.
+              Trigger a universal 2-minute countdown timer. This starts ticking down instantly for all active players in their top status headers.
             </p>
           </div>
           
@@ -231,12 +243,23 @@ export default function AdminPanel({
                 onClick={onStartTimer}
                 className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold font-sans text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs active:scale-98 ${
                   timerActive
-                    ? 'bg-red-100 hover:bg-red-200/80 text-red-800 border border-red-250 animate-pulse'
+                    ? 'bg-red-150 hover:bg-red-200 text-red-800 border border-red-350 animate-pulse'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500 shadow-sm'
                 }`}
               >
                 <Play className={`w-3.5 h-3.5 ${timerActive ? 'animate-pulse text-red-600' : ''}`} />
-                <span>{timerActive ? 'Restart 1-Min Timer' : 'Start the Timer'}</span>
+                <span className="flex items-center gap-1.5">
+                  <span>{timerActive ? 'Restart Timer' : 'Start the Timer'}</span>
+                  <span className={`px-2 py-0.5 rounded-md font-mono text-[11px] font-black tracking-wide ${
+                    timerActive ? 'bg-red-200/50 text-red-950 border border-red-300' : 'bg-emerald-800 text-emerald-100'
+                  }`}>
+                    {timerActive && timeLeft !== undefined ? (() => {
+                      const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+                      const ss = String(timeLeft % 60).padStart(2, '0');
+                      return `${mm}:${ss}`;
+                    })() : '02:00'}
+                  </span>
+                </span>
               </button>
 
               <button

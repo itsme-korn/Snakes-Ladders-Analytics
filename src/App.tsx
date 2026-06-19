@@ -44,6 +44,8 @@ export default function App() {
 
   // Dynamic remote-loaded data from Google Sheet
   const [passwordsFromSheet, setPasswordsFromSheet] = useState<{ [key: string]: string } | undefined>(undefined);
+  const [standPositionsFromSheet, setStandPositionsFromSheet] = useState<{ [key: string]: { stand1: number; stand2: number } } | undefined>(undefined);
+  const [summaryRows, setSummaryRows] = useState<any[][] | undefined>(undefined);
   const [isPulling, setIsPulling] = useState<boolean>(false);
 
   // Timer countdown state
@@ -59,7 +61,7 @@ export default function App() {
   });
 
   const [timeLeft, setTimeLeft] = useState<number>(() => {
-    if (!timerEnd) return 60;
+    if (!timerEnd) return 120;
     return Math.max(0, Math.ceil((timerEnd - Date.now()) / 1000));
   });
 
@@ -68,7 +70,7 @@ export default function App() {
     timerEndRef.current = timerEnd;
   }, [timerEnd]);
 
-  const lastSecRef = React.useRef<number>(60);
+  const lastSecRef = React.useRef<number>(120);
   const lastFastTickRef = React.useRef<number>(0);
 
   // Global button and clickable element sound trigger
@@ -115,7 +117,7 @@ export default function App() {
         if (diff <= 0) {
           setTimerEnd(null);
           localStorage.removeItem('snakes_n_ladders_timer_end');
-          setTimeLeft(60);
+          setTimeLeft(120);
           
           // Play finished sound
           try {
@@ -193,7 +195,7 @@ export default function App() {
           }
         }
       } else {
-        setTimeLeft(60);
+        setTimeLeft(120);
       }
     }, 100);
 
@@ -221,7 +223,7 @@ export default function App() {
   }, []);
 
   const handleStartTimer = () => {
-    const endTime = Date.now() + 60000; // 1-minute default duration
+    const endTime = Date.now() + 120000; // 2-minute default duration
     setTimerEnd(endTime);
     localStorage.setItem('snakes_n_ladders_timer_end', String(endTime));
     syncTimerToGoogleSheet(sheetConfig, endTime);
@@ -230,7 +232,7 @@ export default function App() {
   const handleStopTimer = () => {
     setTimerEnd(null);
     localStorage.removeItem('snakes_n_ladders_timer_end');
-    setTimeLeft(60);
+    setTimeLeft(120);
     syncTimerToGoogleSheet(sheetConfig, null);
   };
 
@@ -239,13 +241,13 @@ export default function App() {
     if (timerEnd) {
       newEndTime = timerEnd + (adjustmentSec * 1000);
     } else {
-      newEndTime = Date.now() + ((60 + adjustmentSec) * 1000);
+      newEndTime = Date.now() + ((120 + adjustmentSec) * 1000);
     }
     
     if (newEndTime <= Date.now()) {
       setTimerEnd(null);
       localStorage.removeItem('snakes_n_ladders_timer_end');
-      setTimeLeft(60);
+      setTimeLeft(120);
       syncTimerToGoogleSheet(sheetConfig, null);
     } else {
       setTimerEnd(newEndTime);
@@ -278,7 +280,7 @@ export default function App() {
 
     if (!isSilent) setIsPulling(true);
     try {
-      const data = await fetchGoogleSheetState(activeConfig);
+      const data = await fetchGoogleSheetState(activeConfig, currentRound);
       if (data) {
         // Apply synchronized passwords if present
         if (data.passwords) {
@@ -286,11 +288,26 @@ export default function App() {
           if (!isSilent) console.log('Successfully synced custom passwords from sheet:', data.passwords);
         }
 
+        // Apply synchronized stand positions if present
+        if (data.standPositions) {
+          setStandPositionsFromSheet(data.standPositions);
+          if (!isSilent) console.log('Successfully synced stand positions from sheet:', data.standPositions);
+        }
+
+        // Apply synchronized summary rows if present
+        if (data.summaryRows) {
+          setSummaryRows(data.summaryRows);
+          if (!isSilent) console.log('Successfully synced raw visual summary rows from sheet:', data.summaryRows.length);
+        }
+
         // Apply synchronized coordinates if present
         if (data.positions) {
           setPlayers((prevPlayers) =>
             prevPlayers.map((player) => {
-              const matchedPosition = data.positions?.[player.name];
+              const matchedPosition = data.positions?.[player.name] ?? 
+                                      data.positions?.[player.id] ??
+                                      data.positions?.[player.id ? player.id.replace('baan-', 'Baan ') : ''] ??
+                                      data.positions?.[player.name.replace("บ้าน ", "Baan ")];
               if (matchedPosition !== undefined && !isNaN(matchedPosition)) {
                 return {
                   ...player,
@@ -321,13 +338,13 @@ export default function App() {
               } else {
                 setTimerEnd(null);
                 localStorage.removeItem('snakes_n_ladders_timer_end');
-                setTimeLeft(60);
+                setTimeLeft(120);
               }
             }
           } else if (currentLocalTime !== null) {
             setTimerEnd(null);
             localStorage.removeItem('snakes_n_ladders_timer_end');
-            setTimeLeft(60);
+            setTimeLeft(120);
           }
         }
       }
@@ -347,13 +364,16 @@ export default function App() {
   useEffect(() => {
     if (!sheetConfig.appsScriptUrl) return;
 
+    // Pull immediately on change
+    loadSheetData(sheetConfig, true);
+
     // Pull every 6 seconds softly in the background
     const interval = setInterval(() => {
       loadSheetData(sheetConfig, true);
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [sheetConfig.appsScriptUrl]);
+  }, [sheetConfig.appsScriptUrl, currentRound]);
 
   // Actions
   const handleRollComplete = (val: string, stand1: number, stand2: number, before: number, after: number) => {
@@ -482,7 +502,7 @@ export default function App() {
           {/* Active Round Indicator */}
           <span className="tracking-wide font-sans bg-amber-500 text-slate-900 font-extrabold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm">
             <span>ROUND</span>
-            <span className="px-2 py-0.5 bg-slate-950 text-white rounded font-mono text-[11px] font-black">{currentRound === 'Trial' ? 'Trial' : currentRound}</span>
+            <span className="px-2 py-0.5 bg-slate-950 text-white rounded font-mono text-[11px] font-black">{currentRound === 'Trial' ? 'Trial' : currentRound.replace('Round ', '')}</span>
           </span>
 
           {/* Active Identity Label */}
@@ -566,12 +586,14 @@ export default function App() {
                 sheetConfig={sheetConfig}
                 currentRound={currentRound}
                 timerActive={!!timerEnd}
+                timeLeft={timeLeft}
                 onStartTimer={handleStartTimer}
                 onStopTimer={handleStopTimer}
                 onAdjustTimer={handleAdjustTimer}
                 onChangeRound={(newRound: string) => {
-                  setCurrentRound(newRound);
-                  syncActiveRoundToGoogleSheet(sheetConfig, newRound);
+                  const normalized = newRound !== 'Trial' && !newRound.toLowerCase().startsWith('round') ? `Round ${newRound}` : newRound;
+                  setCurrentRound(normalized);
+                  syncActiveRoundToGoogleSheet(sheetConfig, normalized);
                 }}
                 onUpdateSheetConfig={handleUpdateSheetConfig}
                 onManualMovePlayer={handleManualMovePlayer}
@@ -598,6 +620,8 @@ export default function App() {
                   currentRound={currentRound}
                   onRollComplete={handleRollComplete}
                   onLogout={handleLogout}
+                  standPositionsFromSheet={standPositionsFromSheet}
+                  summaryRows={summaryRows}
                 />
               </motion.div>
             )

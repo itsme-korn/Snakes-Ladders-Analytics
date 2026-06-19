@@ -96,16 +96,38 @@ export const getInitialRolls = (): Roll[] => {
 
 export const getInitialSheetConfig = (): GoogleSheetConfig => {
   const saved = localStorage.getItem(SHEET_CONFIG_KEY);
-  const targetUrl = 'https://script.google.com/macros/s/AKfycbyuZckHBr6AqEWt-70Z2l90qEc4uYX9p7xvR93At9Ave4A9nVM8qk_X0LOXwKBfNQb2mg/exec';
+  const targetUrl = 'https://script.google.com/macros/s/AKfycbxQBhxf_3Y_MKTa40LNz0UmgnxkVed8g_r2uKTm72lelvwOk_EJrRArWfwVK8anzpmq/exec';
+  const defaultSpreadsheetId = '1Q8AAE37LQ-g10B0KF9HXP6rbhNkAbmQjGTkSWokyKZw';
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       if (parsed) {
-        if (!parsed.spreadsheetId) {
-          parsed.spreadsheetId = '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk';
+        if (!parsed.spreadsheetId || parsed.spreadsheetId === '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk') {
+          parsed.spreadsheetId = defaultSpreadsheetId;
         }
-        // Force update if it was using the older default URL or if appsScriptUrl is empty/missing
-        if (!parsed.appsScriptUrl || parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzFerjPz8A1FwTzx2NsqbEsxb5jbNs_WXVcaEPZUBTwAszcq8mgqGFpnHcl5S8oa3I/exec') {
+        // Force update if it was using any older default URL or if appsScriptUrl is empty/missing
+        if (
+          !parsed.appsScriptUrl || 
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzQooBistUCyVgH3-L0A4uSG4pkqNDQssMagyt7Rk-ye4oWTk44ho2uSFvw1J0wvKASpQ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzFerjPz8A1FwTzx2NsqbEsxb5jbNs_WXVcaEPZUBTwAszcq8mgqGFpnHcl5S8oa3I/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbyuZckHBr6AqEWt-70Z2l90qEc4uYX9p7xvR93At9Ave4A9nVM8qk_X0LOXwKBfNQb2mg/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbwmPbnkA8I4k7d9Bna2DshLsRsQ0Oc9_8ObtyAtYyKPqc-6iZUrUOuwmejbuBC2voClNw/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbx4XHYmMzqNeS2vVLqM9xdQKkc21igDScEe9amaiUNPjiXtODlGaliI5VLzzboFfodkPQ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycby-f6Uzu8t1aGml2xylqsTGK7Hav03sRgQeq6tup54nFScrbvMLi8m4bkJFH61VTLyAQQ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbyK9WH6bPYvli9uzJltepl7t_C9r69b6SVcaIbQYJjVOBtRq1qBDGU6937eB-jS3k5ZvQ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycby70GCULgIDfXN4UV7_OXcPMHPl2J22Poyn8lIWvUgiwmmvaLBoszYtD8ktfe6uHVxVnw/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbx0Bn_oZK2ycjXm_6QIzOJaORWU2qvciF_xDoP847Gk1GyG6uaTiMtpdkrqrDov7UQsAg/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzdC_dQHLgRQjb_ZMU5YndZT5BFWFVXNYNThizL1VSmhVs9p_SiNv2sTIn8nwSI8g9vQQ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbyYTZUQLa78Pz9Sysc_owMKKP9ossxSXIykwKtkZCmSHpbYGWgrRcZvVK07OnC52x2x/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbxRgCqIMiZ_-0f_SloEmiozR6vN6G0mex7ej1XTpCcvGmQwfN9DwAW6by1rCA88MLsG/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbyHfpk1AQNyakBAnLKjHRf0Q1UBlO6QJbRyfhb9GZXyFcxXJ--c772MOiZwqTXEk6Ss/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzwlfFkHkgjWCK9KuACA5n_KoNmf5ViCqwzYs1_m0o6wcxTaUbLLQOJ3caKADiP0heM/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbySGcNOJnV2ds7gvC5XJbolHVl3jAJEfdmCzRkHMNKTvLGJ-_fecDelNjRq1WYczVQJ/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbxHaBXSMFY_JcntdhnSVMIlGzfVu13QfaNVEHeEr2nHuKxKvhIrk9PyBG1A2Pz7Lz_o/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzBMm7S1y1rSPNhTwOnALkTJp1-JAf8Mc63q7ZYwvQ3tMRbDvSj2nDM-vz7K0eHN3C9/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbzT2iTjO2rKg9REahfySalGk-2WpAAQ2TGilf2HuQT-Z_vfTzt_m1k5O8b8Z4O33a56/exec' ||
+          parsed.appsScriptUrl === 'https://script.google.com/macros/s/AKfycbw-Mgmp4BBk5MeDfnjZyFyt4toaZiBh-BqEA7Kx2HbHjp7p1mPuo_DiNILQ_tmio4Gj/exec'
+        ) {
           parsed.appsScriptUrl = targetUrl;
           parsed.isLinked = true;
           localStorage.setItem(SHEET_CONFIG_KEY, JSON.stringify(parsed));
@@ -117,7 +139,7 @@ export const getInitialSheetConfig = (): GoogleSheetConfig => {
     }
   }
   return {
-    spreadsheetId: '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk',
+    spreadsheetId: defaultSpreadsheetId,
     appsScriptUrl: targetUrl,
     sheetName: 'Sheet1',
     isLinked: true,
@@ -146,6 +168,7 @@ export const syncRollToGoogleSheet = async (
   }
 
   const selectedRound = round || localStorage.getItem('snakes_n_ladders_active_round') || 'Trial';
+  const formattedRound = selectedRound !== 'Trial' && !selectedRound.toLowerCase().startsWith('round') ? `Round ${selectedRound}` : selectedRound;
   const timestamp = new Date().toISOString();
 
   const payload = {
@@ -156,7 +179,7 @@ export const syncRollToGoogleSheet = async (
     stand2: roll.stand2,
     squareBefore: roll.squareBefore,
     squareAfter: roll.squareAfter,
-    round: selectedRound,
+    round: formattedRound,
     timestamp: timestamp,
   };
 
@@ -168,7 +191,7 @@ export const syncRollToGoogleSheet = async (
     stand2: String(roll.stand2),
     squareBefore: String(roll.squareBefore),
     squareAfter: String(roll.squareAfter),
-    round: selectedRound,
+    round: formattedRound,
     timestamp: timestamp,
   });
 
@@ -219,9 +242,11 @@ export const syncActiveRoundToGoogleSheet = async (
     return false;
   }
 
+  const formattedRound = round !== 'Trial' && !round.toLowerCase().startsWith('round') ? `Round ${round}` : round;
+
   const payload = {
     action: 'setRound',
-    round: round,
+    round: formattedRound,
   };
 
   try {
@@ -234,7 +259,7 @@ export const syncActiveRoundToGoogleSheet = async (
       body: JSON.stringify(payload),
     });
 
-    fetch(`${config.appsScriptUrl}?action=setRound&round=${encodeURIComponent(round)}`, {
+    fetch(`${config.appsScriptUrl}?action=setRound&round=${encodeURIComponent(formattedRound)}`, {
       method: 'GET',
       mode: 'no-cors',
     }).catch(() => {});
@@ -243,7 +268,7 @@ export const syncActiveRoundToGoogleSheet = async (
   } catch (error) {
     console.error('Failed to sync active round to Google Sheets:', error);
     try {
-      await fetch(`${config.appsScriptUrl}?action=setRound&round=${encodeURIComponent(round)}`, {
+      await fetch(`${config.appsScriptUrl}?action=setRound&round=${encodeURIComponent(formattedRound)}`, {
         method: 'GET',
         mode: 'no-cors',
       });
@@ -354,12 +379,25 @@ export const syncFormatSheets = async (
  * This executes a simple GET request on the spreadsheet web app wrapper.
  */
 export const fetchGoogleSheetState = async (
-  config: GoogleSheetConfig
-): Promise<{ passwords?: { [key: string]: string }; positions?: { [key: string]: number }; activeRound?: string; timerEnd?: string } | null> => {
+  config: GoogleSheetConfig,
+  currentRound?: string
+): Promise<{ 
+  passwords?: { [key: string]: string }; 
+  positions?: { [key: string]: number }; 
+  standPositions?: { [key: string]: { stand1: number; stand2: number } };
+  activeRound?: string; 
+  timerEnd?: string; 
+  summaryRows?: any[][];
+} | null> => {
   if (!config.appsScriptUrl) return null;
 
   try {
-    const response = await fetch(`${config.appsScriptUrl}?action=getState`);
+    let url = `${config.appsScriptUrl}?action=getState`;
+    if (currentRound) {
+      const formattedRound = currentRound !== 'Trial' && !currentRound.toLowerCase().startsWith('round') ? `Round ${currentRound}` : currentRound;
+      url += `&round=${encodeURIComponent(formattedRound)}`;
+    }
+    const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`HTTP error ${response.status}`);
     }
@@ -375,7 +413,7 @@ export const fetchGoogleSheetState = async (
  * Generates the robust Google Apps Script code that the admin can paste into their Sheet.
  */
 export const getGoogleAppsScriptCode = (spreadsheetId?: string, sheetName: string = 'Sheet1') => {
-  const targetId = spreadsheetId || '1LogSUVN7J7WzItuKwBFAuWCQe6dPJ3MwbJeuxucZNBk';
+  const targetId = spreadsheetId || '1Q8AAE37LQ-g10B0KF9HXP6rbhNkAbmQjGTkSWokyKZw';
   return `/**
  * Google Apps Script for Snakes & Ladders - Dice Roller Integration
  * Setup Instructions:
@@ -452,83 +490,170 @@ function formatSheetBeauty(sheet) {
       for (var col = 1; col <= lastCol; col++) {
         var subHeaderVal = sheet.getRange(3, col).getValue();
         if (subHeaderVal === "Stand บน" || subHeaderVal === "Stand ล่าง") {
+          sheet.setColumnWidth(col, 85);
+        } else if (subHeaderVal === "Current Pos" || subHeaderVal === "การ์ดพิเศษ") {
           sheet.setColumnWidth(col, 95);
-        } else if (subHeaderVal === "การ์ดพิเศษ") {
-          sheet.setColumnWidth(col, 100);
-        } else if (col === 1) {
-          sheet.setColumnWidth(col, 90);
-        } else if (col % 5 === 1 && col > 1) { // spacer column
-          sheet.setColumnWidth(col, 30);
+        } else if (subHeaderVal === "บ้าน" || col === 1) {
+          sheet.setColumnWidth(col, 75);
+        } else {
+          sheet.setColumnWidth(col, 30); // Spacer or other
         }
+      }
+
+      // Auto-apply conditional formatting for Current Pos (Value 8 = Soft Green, Value 4 = Soft Red)
+      var lastRow = sheet.getLastRow();
+      if (lastRow >= 4 && lastCol >= 2) {
+        var cfRange = sheet.getRange(4, 2, lastRow - 3, lastCol - 1);
+        sheet.clearConditionalFormatRules();
+        
+        var rule8 = SpreadsheetApp.newConditionalFormatRule()
+          .whenNumberEqualTo(8)
+          .setBackground("#d1fae5") // Soft green bg
+          .setFontColor("#15803d")   // Dark green text
+          .setBold(true)
+          .setRanges([cfRange])
+          .build();
+
+        var rule4 = SpreadsheetApp.newConditionalFormatRule()
+          .whenNumberEqualTo(4)
+          .setBackground("#fee2e2") // Soft red bg
+          .setFontColor("#b91c1c")   // Dark red text
+          .setBold(true)
+          .setRanges([cfRange])
+          .build();
+
+        sheet.setConditionalFormatRules([rule8, rule4]);
       }
     } catch(err) {}
   }
 }
 
-// Function to initialize the specific analysis sheet with exact headers from the user screenshot
+// Function to initialize the specific analysis sheet with 8-row house layout
 function initializeAnalysisSheet(sheet) {
   sheet.clear();
   sheet.setGridlines(true);
   
   // Set default body formatting
-  var maxCols = 150;
-  var maxRows = 50;
+  var maxCols = 15;
+  var maxRows = 55;
   var rangeAll = sheet.getRange(1, 1, maxRows, maxCols);
   rangeAll.setFontFamily("Prompt").setFontSize(10).setVerticalAlignment("middle").setHorizontalAlignment("center").setFontColor("#334155");
   
-  // 1. Title Row (Row 1): Orange text, warm alert look exactly meeting the Thai screenshot
-  var titleRange = sheet.getRange(1, 1, 1, maxCols);
+  // 1. Title Row
+  var titleRange = sheet.getRange(1, 1, 1, 11);
   titleRange.merge();
-  titleRange.setValue("[บันไดงู] ชีตสรุปการลงข้อมูลฝ่ายวิเคราะห์")
+  titleRange.setValue("[บันไดงู] ชีตสรุปการลงข้อมูลฝ่ายวิเคราะห์ (8 Rows per House)")
             .setFontSize(13)
             .setFontWeight("bold")
-            .setFontColor("#b45309") // bold orange
-            .setBackground("#fef3c7") // warm light yellow-orange bg
+            .setFontColor("#b45309")
+            .setBackground("#fef3c7")
             .setHorizontalAlignment("center");
   sheet.setRowHeight(1, 38);
-  
   sheet.setRowHeight(2, 24);
-  sheet.setRowHeight(3, 22);
   
-  // Cell A3 label
-  sheet.getRange(3, 1).setValue("บ้าน").setFontWeight("bold").setBackground("#f1f5f9");
-  
-  // 2. Generate Rounds
-  var roundNames = ["Trial"];
-  for (var r = 1; r <= 25; r++) {
-    roundNames.push("Round " + r);
-  }
-  
-  for (var idx = 0; idx < roundNames.length; idx++) {
-    var startCol = 2 + idx * 5;
+  // 2. Setup Headers for Left and Right Blocks
+  function setupHeaders(startCol) {
+    sheet.getRange(2, startCol).setValue("บ้าน").setFontWeight("bold").setBackground("#f1f5f9");
+    sheet.getRange(2, startCol + 1).setValue("รอบ").setFontWeight("bold").setBackground("#e2e8f0");
+    sheet.getRange(2, startCol + 2).setValue("Stand").setFontWeight("bold").setBackground("#ffedd5");
+    sheet.getRange(2, startCol + 3).setValue("ผลการทอย").setFontWeight("bold").setBackground("#fee2e2");
+    sheet.getRange(2, startCol + 4).setValue("Current Pos").setFontWeight("bold").setBackground("#e0e7ff");
     
-    // Group Header: Trial or Round X
-    var roundRange = sheet.getRange(2, startCol, 1, 4);
-    roundRange.merge();
-    roundRange.setValue(roundNames[idx])
-              .setFontWeight("bold")
-              .setFontColor("#b91c1c") // dark red
-              .setBackground("#fee2e2") // very soft red bg
-              .setHorizontalAlignment("center");
-              
-    // Sub-headers
-    sheet.getRange(3, startCol).setValue("Stand บน").setFontWeight("bold").setBackground("#ffedd5"); // peach orange bg
-    sheet.getRange(3, startCol + 1).setValue("การ์ดพิเศษ").setFontWeight("bold").setBackground("#fafaf9"); 
-    sheet.getRange(3, startCol + 2).setValue("Stand ล่าง").setFontWeight("bold").setBackground("#ffedd5");
-    sheet.getRange(3, startCol + 3).setValue("การ์ดพิเศษ").setFontWeight("bold").setBackground("#fafaf9");
-    
-    // Spacer Column
-    var spacerCol = startCol + 4;
-    sheet.getRange(2, spacerCol, 2, 1).setBackground("#ffffff");
-    sheet.setColumnWidth(spacerCol, 25);
+    sheet.setColumnWidth(startCol, 65);
+    sheet.setColumnWidth(startCol + 1, 55);
+    sheet.setColumnWidth(startCol + 2, 85);
+    sheet.setColumnWidth(startCol + 3, 85);
+    sheet.setColumnWidth(startCol + 4, 95);
   }
   
-  // 3. Write 'บ้าน 1' to 'บ้าน 12' in Column A (Rows 4 to 15)
-  for (var i = 1; i <= 12; i++) {
-    var rowIdx = 3 + i;
-    sheet.getRange(rowIdx, 1).setValue("บ้าน " + i).setFontWeight("bold").setBackground("#f8fafc");
-    sheet.setRowHeight(rowIdx, 24);
+  setupHeaders(1); // Col A-E
+  setupHeaders(7); // Col G-K
+  sheet.setColumnWidth(6, 20); // Spacer column F
+  
+  function wrapStr(colStr, rowNum) {
+    return '=IF(OR(' + colStr + rowNum + '="", ' + colStr + rowNum + '=0), "", ' + colStr + rowNum + ')';
   }
+
+  // 3. Render Houses
+  function renderHouseBlock(h, baseRow, startCol) {
+    var bg = (h % 2 === 0) ? "#e8f5e9" : "#fafafc";
+    
+    // House Name (Merge 8 rows)
+    var houseRange = sheet.getRange(baseRow, startCol, 8, 1);
+    houseRange.merge();
+    houseRange.setValue("บ้าน " + h).setFontWeight("bold").setBackground(bg);
+    
+    // Rows
+    for (var i = 0; i < 8; i++) {
+      var r = baseRow + i;
+      sheet.setRowHeight(r, 24);
+      
+      // Stand names
+      var isStand1 = (i % 2 === 0);
+      sheet.getRange(r, startCol + 2).setValue(isStand1 ? "Stand บน" : "Stand ล่าง")
+           .setBackground(isStand1 ? "#ffedd5" : bg)
+           .setFontWeight("bold");
+           
+      sheet.getRange(r, startCol + 3).setBackground(bg); // Result
+      sheet.getRange(r, startCol + 4).setBackground("#fafaf9"); // Pos
+    }
+    
+    // Round names (merge 2 rows each)
+    for (var round = 1; round <= 4; round++) {
+      var roundBaseRow = baseRow + (round - 1) * 2;
+      var roundRange = sheet.getRange(roundBaseRow, startCol + 1, 2, 1);
+      roundRange.merge();
+      roundRange.setValue("Round " + round).setFontWeight("bold").setBackground("#e2e8f0");
+      
+      // Target Pos cell formulas (using wrapLadderSnake)
+      var posColStr = getColLetter(startCol + 4); 
+      var resultColStr = getColLetter(startCol + 3);
+      var f1 = "";
+      var f2 = "";
+      
+      if (round === 1) {
+        var expr1 = '1+' + resultColStr + roundBaseRow;
+        var expr2 = '1+' + resultColStr + (roundBaseRow+1);
+        f1 = '=IF(OR(' + resultColStr + roundBaseRow + '="", ' + resultColStr + roundBaseRow + '=0), "", ' + wrapLadderSnake(expr1).replace(/^=/, "") + ')';
+        f2 = '=IF(OR(' + resultColStr + (roundBaseRow+1) + '="", ' + resultColStr + (roundBaseRow+1) + '=0), "", ' + wrapLadderSnake(expr2).replace(/^=/, "") + ')';
+      } else {
+        var prevRoundBaseRow = baseRow + (round - 2) * 2;
+        var expr1 = posColStr + prevRoundBaseRow + '+' + resultColStr + roundBaseRow;
+        var expr2 = posColStr + (prevRoundBaseRow+1) + '+' + resultColStr + (roundBaseRow+1);
+        f1 = '=IF(OR(' + resultColStr + roundBaseRow + '="", ' + resultColStr + roundBaseRow + '=0), "", ' + wrapLadderSnake(expr1).replace(/^=/, "") + ')';
+        f2 = '=IF(OR(' + resultColStr + (roundBaseRow+1) + '="", ' + resultColStr + (roundBaseRow+1) + '=0), "", ' + wrapLadderSnake(expr2).replace(/^=/, "") + ')';
+      }
+      sheet.getRange(roundBaseRow, startCol + 4).setFormula(f1);
+      sheet.getRange(roundBaseRow + 1, startCol + 4).setFormula(f2);
+    }
+  }
+
+  // Generate for Houses 1 to 6 (Left)
+  for (var h = 1; h <= 6; h++) {
+    renderHouseBlock(h, 3 + (h - 1) * 8, 1);
+  }
+  
+  // Generate for Houses 7 to 12 (Right)
+  for (var h = 7; h <= 12; h++) {
+    renderHouseBlock(h, 3 + (h - 7) * 8, 7);
+  }
+  
+  // Conditional formatting for Green/Red squares
+  try {
+    var cfRange1 = sheet.getRange(3, 5, 48, 1);
+    var cfRange2 = sheet.getRange(3, 11, 48, 1);
+    sheet.clearConditionalFormatRules();
+    
+    var rule8 = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberEqualTo(8).setBackground("#d1fae5").setFontColor("#15803d").setBold(true)
+      .setRanges([cfRange1, cfRange2]).build();
+      
+    var rule4 = SpreadsheetApp.newConditionalFormatRule()
+      .whenNumberEqualTo(4).setBackground("#fee2e2").setFontColor("#b91c1c").setBold(true)
+      .setRanges([cfRange1, cfRange2]).build();
+
+    sheet.setConditionalFormatRules([rule8, rule4]);
+  } catch(e) {}
 }
 
 // Handle HTTP POST (Recording dice rolls and analysis)
@@ -562,7 +687,7 @@ function doPost(e) {
     if (data.action === "format") {
       let logSheet = ss.getSheetByName("Roll Logs");
       let stateSheet = ss.getSheetByName("Board States");
-      let summarySheet = ss.getSheetByName(SHEET_NAME);
+      let summarySheet = getSheetSafely(ss, SHEET_NAME);
       
       if (logSheet) formatSheetBeauty(logSheet);
       if (stateSheet) formatSheetBeauty(stateSheet);
@@ -604,19 +729,10 @@ function processAddRoll(ss, data) {
     }
   }
   
-  // Ensure main visual analysis sheet exists
-  let summarySheet = ss.getSheetByName(SHEET_NAME);
+  // Ensure main visual analysis sheet exists safely (handles locales like Sheet1 vs ชีต1)
+  let summarySheet = getSheetSafely(ss, SHEET_NAME);
   if (!summarySheet) {
     summarySheet = ss.insertSheet(SHEET_NAME);
-  }
-  
-  var currentTitle = "";
-  try {
-    currentTitle = summarySheet.getRange(1, 1).getValue().toString();
-  } catch(err) {}
-  
-  if (currentTitle.indexOf("[บันไดงู]") === -1) {
-    initializeAnalysisSheet(summarySheet);
   }
 
   const timestamp = data.timestamp || new Date().toISOString();
@@ -657,57 +773,73 @@ function processAddRoll(ss, data) {
     ]);
   }
   
-  // 3. Update the visual Excel analysis sheet columns
-  // Find row for this House (บ้าน 1 to บ้าน 12)
-  const summaryData = summarySheet.getDataRange().getValues();
-  let summaryRowIndex = -1;
-  for (let i = 3; i < summaryData.length; i++) {
-    var sheetBaan = summaryData[i][0];
-    if (sheetBaan === normalizedThaiBaan || sheetBaan === data.baan) {
-      summaryRowIndex = i + 1; // 1-indexed
-      break;
+  // 3. Update the visual Excel analysis sheet columns (Column D or J ONLY)
+  // Parse Baan/House Number
+  var houseNum = 0;
+  var baanStr = (data.baan || "").toString();
+  var numMatch = baanStr.match(/\d+/);
+  if (numMatch) {
+    houseNum = parseInt(numMatch[0], 10);
+  }
+  
+  // Parse Round selection (Supports dynamic naming like "Round 1", "Round 4", "รอบ 1", etc.)
+  var roundVal = (data.round || "Round 1").toString().toLowerCase();
+  var roundNum = 1;
+  if (roundVal.indexOf("4") !== -1 || roundVal.indexOf("รอบ 4") !== -1) {
+    roundNum = 4;
+  } else if (roundVal.indexOf("3") !== -1 || roundVal.indexOf("รอบ 3") !== -1) {
+    roundNum = 3;
+  } else if (roundVal.indexOf("2") !== -1 || roundVal.indexOf("รอบ 2") !== -1) {
+    roundNum = 2;
+  } else if (roundVal.indexOf("1") !== -1 || roundVal.indexOf("รอบ 1") !== -1) {
+    roundNum = 1;
+  } else if (roundVal.indexOf("trial") !== -1) {
+    roundNum = 0;
+  }
+  
+  // Choose exact column and starting base row (House 1 starts at Row 3, each house block is 8 rows)
+  var targetCol = -1;
+  var houseBaseRow = -1;
+  
+  if (houseNum >= 1 && houseNum <= 6) {
+    targetCol = 4; // Column D (ผลการทอย)
+    houseBaseRow = 3 + (houseNum - 1) * 8;
+  } else if (houseNum >= 7 && houseNum <= 12) {
+    targetCol = 10; // Column J (ผลการทอย)
+    houseBaseRow = 3 + (houseNum - 7) * 8;
+  }
+  
+  // If round is Trial (0), do not update the visual analysis sheet
+  if (roundNum !== 0 && targetCol !== -1 && houseBaseRow !== -1) {
+    var offsetStand1 = -1;
+    var offsetStand2 = -1;
+    
+    // Rows within the 8-row house block (Round 1 = offsets 0/1, Round 2 = offsets 2/3, Round 3 = offsets 4/5, Round 4 = offsets 6/7)
+    if (roundNum === 1) {
+      offsetStand1 = 0; // Row 0 of block -> Stand บน
+      offsetStand2 = 1; // Row 1 of block -> Stand ล่าง
+    } else if (roundNum === 2) {
+      offsetStand1 = 2; // Row 2 of block -> Stand บน
+      offsetStand2 = 3; // Row 3 of block -> Stand ล่าง
+    } else if (roundNum === 3) {
+      offsetStand1 = 4; // Row 4 of block -> Stand บน
+      offsetStand2 = 5; // Row 5 of block -> Stand ล่าง
+    } else if (roundNum === 4) {
+      offsetStand1 = 6; // Row 6 of block -> Stand บน
+      offsetStand2 = 7; // Row 7 of block -> Stand ล่าง
+    }
+    
+    // Explicit signed strings like "+3", "-5", or "0"
+    var s1ValStr = (parseInt(data.stand1, 10) > 0 ? "+" : "") + data.stand1;
+    var s2ValStr = (parseInt(data.stand2, 10) > 0 ? "+" : "") + data.stand2;
+    
+    if (offsetStand1 !== -1) {
+      summarySheet.getRange(houseBaseRow + offsetStand1, targetCol).setValue(s1ValStr);
+    }
+    if (offsetStand2 !== -1) {
+      summarySheet.getRange(houseBaseRow + offsetStand2, targetCol).setValue(s2ValStr);
     }
   }
-  
-  // Fallback row if not matched
-  if (summaryRowIndex === -1) {
-    summaryRowIndex = summarySheet.getLastRow() + 1;
-    summarySheet.getRange(summaryRowIndex, 1).setValue(normalizedThaiBaan).setFontWeight("bold").setBackground("#f1f5f9");
-    summarySheet.setRowHeight(summaryRowIndex, 24);
-  }
-  
-  // Column calculation based on target round selection
-  var roundVal = data.round || "Trial";
-  try {
-    if (!data.round) {
-      roundVal = PropertiesService.getScriptProperties().getProperty("activeRound") || "Trial";
-    }
-  } catch (err) {}
-
-  // Parse roundIndex dynamically (supports flexible formatting like "3", "Round 3")
-  var roundIndex = 0;
-  var match = roundVal.toString().match(/\\d+/);
-  if (match) {
-    roundIndex = parseInt(match[0], 10);
-  } else if (roundVal.toString().toLowerCase().indexOf("trial") !== -1) {
-    roundIndex = 0;
-  } else {
-    // Basic fallback mapping
-    if (roundVal === "1") roundIndex = 1;
-    else if (roundVal === "2") roundIndex = 2;
-    else if (roundVal === "3") roundIndex = 3;
-    else if (roundVal === "4") roundIndex = 4;
-  }
-  
-  var stand1Col = 2 + roundIndex * 5;
-  var stand2Col = 4 + roundIndex * 5;
-  
-  // Explicit signed strings like "+3" or "-5"
-  var s1ValStr = (data.stand1 > 0 ? "+" : "") + data.stand1;
-  var s2ValStr = (data.stand2 > 0 ? "+" : "") + data.stand2;
-  
-  summarySheet.getRange(summaryRowIndex, stand1Col).setValue(s1ValStr);
-  summarySheet.getRange(summaryRowIndex, stand2Col).setValue(s2ValStr);
   
   return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Successfully logged roll to analysis sheet" }))
     .setMimeType(ContentService.MimeType.JSON);
@@ -754,7 +886,7 @@ function doGet(e) {
     if (action === "format") {
       let logSheet = ss.getSheetByName("Roll Logs");
       let stateSheet = ss.getSheetByName("Board States");
-      let summarySheet = ss.getSheetByName(SHEET_NAME);
+      let summarySheet = getSheetSafely(ss, SHEET_NAME);
       
       if (logSheet) formatSheetBeauty(logSheet);
       if (stateSheet) formatSheetBeauty(stateSheet);
@@ -764,10 +896,11 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // Look first in Board States sheet, fallback to SHEET_NAME
+    // Look first in Board States sheet
     let stateSheet = ss.getSheetByName("Board States");
+    let isRealStateSheet = !!stateSheet;
     if (!stateSheet) {
-      stateSheet = ss.getSheetByName(SHEET_NAME);
+      stateSheet = getSheetSafely(ss, SHEET_NAME);
     }
     
     if (!stateSheet) {
@@ -775,20 +908,22 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    const data = stateSheet.getDataRange().getValues();
     const passwords = {};
     const positions = {};
     
-    for (let i = 1; i < data.length; i++) {
-      const player = data[i][0]; 
-      const square = data[i][1]; 
-      const pass = data[i][2]; 
-      
-      if (player) {
-        // Map back to standard "Baan X" so the client state binds perfectly
-        var normalizedEnglishBaan = player.replace("บ้าน ", "Baan ");
-        passwords[normalizedEnglishBaan] = String(pass);
-        positions[normalizedEnglishBaan] = Number(square) || 1;
+    if (isRealStateSheet) {
+      const data = stateSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        const player = data[i][0]; 
+        const square = data[i][1]; 
+        const pass = data[i][2]; 
+        
+        if (player) {
+          // Map back to standard "Baan X" so the client state binds perfectly
+          var normalizedEnglishBaan = normalizeBaanName(player);
+          passwords[normalizedEnglishBaan] = String(pass);
+          positions[normalizedEnglishBaan] = Number(square) || 1;
+        }
       }
     }
     
@@ -802,12 +937,127 @@ function doGet(e) {
       timerEnd = PropertiesService.getScriptProperties().getProperty("timerEnd") || "0";
     } catch(err) {}
     
-    return ContentService.createTextOutput(JSON.stringify({ passwords, positions, activeRound, timerEnd }))
+    var standPositions = {};
+    try {
+      var summarySheet = getSheetSafely(ss, SHEET_NAME);
+      if (summarySheet) {
+        var activeRoundStr = e.parameter.round || PropertiesService.getScriptProperties().getProperty("activeRound") || "Trial";
+        var matchRoundNum = 0;
+        if (activeRoundStr.indexOf("Round ") === 0) {
+          matchRoundNum = parseInt(activeRoundStr.replace("Round ", ""), 10) || 0;
+        }
+        
+        var summaryData = summarySheet.getDataRange().getValues();
+        for (var h = 1; h <= 12; h++) {
+          var normalizedBaanName = normalizeBaanName("บ้าน " + h);
+          var baseRowIdx = h <= 6 ? 2 + (h - 1)*8 : 2 + (h - 7)*8;
+          var posColIdx = h <= 6 ? 4 : 10; // Current Pos is col E(4) and K(10)
+          
+          if (baseRowIdx >= summaryData.length) break;
+
+          var prevS1 = 0;
+          var prevS2 = 0;
+          
+          if (matchRoundNum >= 1) {
+            var maxRoundToCheck = Math.min(matchRoundNum - 1, 4);
+            for (var r = maxRoundToCheck; r >= 1; r--) {
+              var rOff = (r - 1) * 2;
+              var s1RowIdx = baseRowIdx + rOff;
+              var s2RowIdx = baseRowIdx + rOff + 1;
+              
+              if (s1RowIdx < summaryData.length) {
+                var v1 = parseFloat(summaryData[s1RowIdx][posColIdx]) || 0;
+                if (v1 > 0 && prevS1 === 0) prevS1 = v1;
+              }
+              if (s2RowIdx < summaryData.length) {
+                var v2 = parseFloat(summaryData[s2RowIdx][posColIdx]) || 0;
+                if (v2 > 0 && prevS2 === 0) prevS2 = v2;
+              }
+              
+              if (prevS1 > 0 && prevS2 > 0) break;
+            }
+          }
+          
+          standPositions[normalizedBaanName] = {
+            stand1: prevS1,
+            stand2: prevS2
+          };
+        }
+      }
+    } catch(err) {}
+    
+    var summaryRows = [];
+    try {
+      var summarySheet = getSheetSafely(ss, SHEET_NAME);
+      if (summarySheet) {
+        summaryRows = summarySheet.getDataRange().getValues();
+      }
+    } catch(err) {}
+    
+    return ContentService.createTextOutput(JSON.stringify({ passwords, positions, activeRound, timerEnd, standPositions, summaryRows }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ error: error.toString() }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// Helper to wrap expression in a 4->8 / 8->4 ladder/snake logic
+function wrapLadderSnake(expr) {
+  return "=IF(" + expr + "=4, 8, IF(" + expr + "=8, 4, " + expr + "))";
+}
+
+// Global helper to convert column index to Excel column letter
+function getColLetter(col) {
+  var temp, letter = "";
+  while (col > 0) {
+    temp = (col - 1) % 26;
+    letter = String.fromCharCode(temp + 65) + letter;
+    col = (col - temp - 1) / 26;
+  }
+  return letter;
+}
+
+// Robust helper to normalize and translate Baan numbers consistently
+function normalizeBaanName(name) {
+  if (!name) return "";
+  var s = String(name).trim();
+  s = s.replace("บ้าน", "Baan");
+  s = s.replace(/\s+/g, " ");
+  // Ensure space before the number, e.g. "Baan 1"
+  s = s.replace(/Baan\s*(\d+)/i, "Baan $1");
+  return s;
+}
+
+// Safe sheet fetch helper (handles localization like Sheet1 vs ชีต1)
+function getSheetSafely(ss, sheetName) {
+  if (!ss) return null;
+  var s = ss.getSheetByName(sheetName);
+  if (s) return s;
+  
+  // Try alternative name
+  if (sheetName === "Sheet1") {
+    s = ss.getSheetByName("ชีต1");
+    if (s) return s;
+  } else if (sheetName === "ชีต1") {
+    s = ss.getSheetByName("Sheet1");
+    if (s) return s;
+  }
+  
+  // Filter out system sheets and find the first user sheet
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var name = sheets[i].getName();
+    if (name !== "Roll Logs" && name !== "Board States" && name !== "System Config") {
+      return sheets[i];
+    }
+  }
+  
+  // Absolute fallback
+  if (sheets.length > 0) {
+    return sheets[0];
+  }
+  return null;
 }`;
 };

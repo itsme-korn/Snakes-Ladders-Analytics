@@ -22,6 +22,8 @@ interface UserDashboardProps {
   currentRound: string;
   onRollComplete: (rollVal: string, stand1: number, stand2: number, beforeSq: number, afterSq: number) => void;
   onLogout: () => void;
+  standPositionsFromSheet?: { [key: string]: { stand1: number; stand2: number } };
+  summaryRows?: any[][];
 }
 
 export default function UserDashboard({
@@ -32,6 +34,8 @@ export default function UserDashboard({
   currentRound,
   onRollComplete,
   onLogout,
+  standPositionsFromSheet,
+  summaryRows,
 }: UserDashboardProps) {
   const roundRoll = rolls.find((r) => r.user === player.name && r.round === currentRound);
   const alreadyConfirmed = !!roundRoll;
@@ -56,6 +60,152 @@ export default function UserDashboard({
 
   const [syncing, setSyncing] = useState<boolean>(false);
   const [syncResult, setSyncResult] = useState<{ success: boolean; msg: string } | null>(null);
+
+  // Calculate Stand บน (Stand 1) and Stand ล่าง (Stand 2) previous totals
+  const getPrevStandPositions = () => {
+    // 1. Calculate local fallback from historical rolls first
+    const ROUND_ORDER = ["Trial", ...Array.from({ length: 25 }, (_, i) => `Round ${i + 1}`)];
+    const currentIndex = ROUND_ORDER.indexOf(currentRound);
+    
+    let localPrevS1 = 0;
+    let localPrevS2 = 0;
+    
+    const stepRule = (val: number) => {
+      if (val === 4) return 8;
+      if (val === 8) return 4;
+      return val;
+    };
+    
+    if (currentIndex > 0) {
+      for (let i = 0; i < currentIndex; i++) {
+        const rName = ROUND_ORDER[i];
+        const match = rolls.find((r) => r.user === player.name && r.round === rName);
+        if (match) {
+          localPrevS1 = stepRule(localPrevS1 + (match.stand1 ?? 0));
+          localPrevS2 = stepRule(localPrevS2 + (match.stand2 ?? 0));
+        }
+      }
+    }
+
+    // 2. Try to calculate from summaryRows directly if available (most robust, handles custom formatting & duplicate tables)
+    if (summaryRows && summaryRows.length > 3) {
+      // Helper to normalize Baan name (same as Google Sheet)
+      const normalizeLocalBaan = (nameStr: string) => {
+        if (!nameStr) return "";
+        let s = String(nameStr).trim();
+        s = s.replace("บ้าน", "Baan");
+        s = s.replace(/\s+/g, " ");
+        s = s.replace(/Baan\s*(\d+)/i, "Baan $1");
+        return s;
+      };
+
+      const normalizedPlayerName = normalizeLocalBaan(player.name);
+
+      // Find the player's row in summaryRows (matching Column A - index 0)
+      let playerRowIndex = -1;
+      for (let i = 3; i < summaryRows.length; i++) {
+        const rawName = summaryRows[i][0];
+        if (rawName && normalizeLocalBaan(rawName) === normalizedPlayerName) {
+          playerRowIndex = i;
+          // Note: we don't break - this gets the LAST match row, supporting duplicate tables / Group 2 perfectly!
+        }
+      }
+
+      if (playerRowIndex !== -1) {
+        const row = summaryRows[playerRowIndex];
+        let pS1 = 0;
+        let pS2 = 0;
+        
+        // Helper to compute 1-based column indices for any round
+        const getColumnsForRoundIndex = (r: number) => {
+          if (r === 0) {
+            return {
+              stand1Col: 2,
+              stand1PosCol: 3,
+              stand2Col: 4,
+              stand2PosCol: 5
+            };
+          }
+          let col = 7;
+          for (let i = 2; i <= r; i++) {
+            if (i % 2 === 0) {
+              col += 7;
+            } else {
+              col += 5;
+            }
+          }
+          return {
+            stand1Col: col,
+            stand1PosCol: col + 1,
+            specialCol: col + 2,
+            stand2Col: col + 3,
+            stand2PosCol: col + 4
+          };
+        };
+
+        if (currentIndex >= 1) {
+          const targetPrevRound = currentIndex - 1;
+          for (let rIdx = targetPrevRound; rIdx >= 0; rIdx--) {
+            let s1Val = 0;
+            let s2Val = 0;
+            
+            if (rIdx === 0) {
+              // Trial: Column indices 1 and 3
+              s1Val = parseFloat(row[1]) || 0;
+              s2Val = parseFloat(row[3]) || 0;
+              s1Val = stepRule(s1Val);
+              s2Val = stepRule(s2Val);
+            } else {
+              // Round rIdx: using the dynamic 6-column repeating mapping
+              const cols = getColumnsForRoundIndex(rIdx);
+              s1Val = parseFloat(row[cols.stand1PosCol - 1]) || 0;
+              s2Val = parseFloat(row[cols.stand2PosCol - 1]) || 0;
+            }
+
+            if (pS1 === 0 && s1Val !== 0) {
+              pS1 = s1Val;
+            }
+            if (pS2 === 0 && s2Val !== 0) {
+              pS2 = s2Val;
+            }
+            if (pS1 !== 0 && pS2 !== 0) {
+              break;
+            }
+          }
+        }
+        
+        return {
+          prevStand1: pS1,
+          prevStand2: pS2
+        };
+      }
+    }
+
+    // 3. Fallback to standPositionsFromSheet (the older sheet endpoint) as backup
+    if (standPositionsFromSheet) {
+      const nameKey = player.name; // "Baan 16"
+      const idKey = player.id; // "baan-12"
+      const normalizedKey = player.id ? player.id.replace('baan-', 'Baan ') : ''; // "Baan 12"
+      
+      const match = standPositionsFromSheet[nameKey] || 
+                    standPositionsFromSheet[idKey] || 
+                    standPositionsFromSheet[normalizedKey] ||
+                    standPositionsFromSheet[player.name.replace("บ้าน ", "Baan ")];
+      
+      if (match) {
+        const s1 = (match.stand1 === 0 && localPrevS1 !== 0) ? localPrevS1 : match.stand1;
+        const s2 = (match.stand2 === 0 && localPrevS2 !== 0) ? localPrevS2 : match.stand2;
+        return {
+          prevStand1: s1,
+          prevStand2: s2
+        };
+      }
+    }
+
+    return { prevStand1: localPrevS1, prevStand2: localPrevS2 };
+  };
+
+  const { prevStand1, prevStand2 } = getPrevStandPositions();
 
   const handleRollComplete = (die1: number, die2: number) => {
     setPendingRoll({ die1, die2 });
@@ -342,16 +492,27 @@ export default function UserDashboard({
                 </div>
 
                 {/* Submitting with explicit direction values */}
-                <div className="bg-slate-900 text-white p-3 rounded-xl text-center text-xs font-mono">
-                  สรุป: &nbsp;
-                  <span className="text-indigo-300 font-bold">
-                    Stand บน: {stand1Dir === 'forward' ? '+' : '-'}{stand1Die === 'A' ? pendingRoll.die1 : pendingRoll.die2}
-                  </span>
-                  &nbsp; | &nbsp;
-                  <span className="text-emerald-300 font-bold">
-                    Stand ล่าง: {stand2Dir === 'forward' ? '+' : '-'}{stand1Die === 'B' ? pendingRoll.die1 : pendingRoll.die2}
-                  </span>
-                </div>
+                {(() => {
+                  const s1Val = stand1Die === 'A' ? pendingRoll.die1 : pendingRoll.die2;
+                  const s2Val = stand1Die === 'B' ? pendingRoll.die1 : pendingRoll.die2;
+                  const stand1Signed = stand1Dir === 'forward' ? s1Val : -s1Val;
+                  const stand2Signed = stand2Dir === 'forward' ? s2Val : -s2Val;
+                  const nextStand1Pos = prevStand1 + stand1Signed;
+                  const nextStand2Pos = prevStand2 + stand2Signed;
+                  
+                  return (
+                    <div className="bg-slate-900 text-white p-3 rounded-xl text-center text-xs font-mono">
+                      สรุป: &nbsp;
+                      <span className="text-indigo-300 font-bold block sm:inline">
+                        Stand บน: {stand1Dir === 'forward' ? '+' : '-'}{s1Val}
+                      </span>
+                      <span className="hidden sm:inline"> &nbsp; | &nbsp; </span>
+                      <span className="text-emerald-300 font-bold block sm:inline">
+                        Stand ล่าง: {stand2Dir === 'forward' ? '+' : '-'}{s2Val}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 <div className="mt-4">
                   <button

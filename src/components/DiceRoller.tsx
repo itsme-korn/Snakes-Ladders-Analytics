@@ -25,6 +25,8 @@ const DICE_PIPS: { [key: number]: number[] } = {
   4: [0, 2, 6, 8], // Four Corners
   5: [0, 2, 4, 6, 8], // Four Corners + Center
   6: [0, 2, 3, 5, 6, 8], // Two Columns
+  7: [0, 2, 3, 4, 5, 6, 8], // Two Columns + Center
+  8: [0, 1, 2, 3, 5, 6, 7, 8], // Entire Outer Border
 };
 
 export default function DiceRoller({ onRollComplete, isRolling, setIsRolling, disabled }: DiceRollerProps) {
@@ -61,14 +63,14 @@ export default function DiceRoller({ onRollComplete, isRolling, setIsRolling, di
 
     const cycleFace = () => {
       if (step < intervals.length) {
-        setDie1(Math.floor(Math.random() * 6) + 1);
-        setDie2(Math.floor(Math.random() * 6) + 1);
+        setDie1(Math.floor(Math.random() * 8) + 1);
+        setDie2(Math.floor(Math.random() * 8) + 1);
         setTimeout(cycleFace, intervals[step]);
         step++;
       } else {
         // Roll final result
-        const final1 = Math.floor(Math.random() * 6) + 1;
-        const final2 = Math.floor(Math.random() * 6) + 1;
+        const final1 = Math.floor(Math.random() * 8) + 1;
+        const final2 = Math.floor(Math.random() * 8) + 1;
         setDie1(final1);
         setDie2(final2);
         onRollComplete(final1, final2);

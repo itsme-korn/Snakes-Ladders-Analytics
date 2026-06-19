@@ -53,10 +53,18 @@ export default function LoginPage({ players, onLoginSuccess, passwordsFromSheet 
     // Check if there is a custom password loaded from Google Sheet
     let correctPassword = '';
     
+    const sheetPass = passwordsFromSheet ? passwordsFromSheet[selectedUser.name] : undefined;
+    const isInvalidCustomPassword = 
+      !sheetPass || 
+      sheetPass.trim() === '' || 
+      sheetPass.includes('Stand') || 
+      sheetPass.includes('รอบ') || 
+      sheetPass.includes('บ้าน');
+
     if (selectedUser.id === 'admin') {
       correctPassword = '000';
-    } else if (passwordsFromSheet && passwordsFromSheet[selectedUser.name]) {
-      correctPassword = passwordsFromSheet[selectedUser.name];
+    } else if (passwordsFromSheet && sheetPass && !isInvalidCustomPassword) {
+      correctPassword = sheetPass.trim();
     } else {
       correctPassword = getDefaultPassword(selectedUser.id);
     }
